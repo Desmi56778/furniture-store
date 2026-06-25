@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Новый запрос администратору</h1>
+<form method="post" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+        {{ form.subject.label(class="form-label") }}
+        {{ form.subject(class="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.body.label(class="form-label") }}
+        {{ form.body(class="form-control", rows="5") }}
+    </div>
+    <div class="mb-3">
+        {{ form.images.label(class="form-label") }}
+        {{ form.images(class="form-control", multiple=True) }}
+        <div class="form-text">Можно выбрать до 5 файлов (jpg, jpeg, png, webp).</div>
+        {% for error in form.images.errors %}
+            <div class="text-danger">{{ error }}</div>
+        {% endfor %}
+    </div>
+    {{ form.submit(class="btn btn-primary") }}
+</form>
+{% endblock %}

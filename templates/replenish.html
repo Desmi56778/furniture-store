@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Пополнение баланса</h1>
+<form method="post" id="replenishForm">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+        {{ form.amount.label(class="form-label") }}
+        {{ form.amount(class="form-control", placeholder="Минимум 1 ₽") }}
+    </div>
+    <div class="mb-3">
+        {{ form.payment_method.label(class="form-label") }}
+        {{ form.payment_method(class="form-select", id="paymentMethod") }}
+    </div>
+
+    <!-- Поля карты (скрыты по умолчанию) -->
+    <div id="cardFields" style="display: none;">
+        <div class="mb-3">
+            {{ form.card_number.label(class="form-label") }}
+            {{ form.card_number(class="form-control", placeholder="0000 0000 0000 0000") }}
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                {{ form.card_expiry.label(class="form-label") }}
+                {{ form.card_expiry(class="form-control", placeholder="ММ/ГГ") }}
+            </div>
+            <div class="col-md-6 mb-3">
+                {{ form.card_cvv.label(class="form-label") }}
+                {{ form.card_cvv(class="form-control", placeholder="123") }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Блок перевода по телефону (скрыт по умолчанию) -->
+    <div id="phoneInfo" style="display: none;" class="alert alert-info">
+        Переведите указанную сумму на номер телефона <strong>+7 961 731 62 14</strong>.<br>
+        После перевода нажмите «Отправить запрос», и администратор проверит поступление.
+    </div>
+
+    <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
+</form>
+
+<script>
+    const paymentMethod = document.getElementById('paymentMethod');
+    const cardFields = document.getElementById('cardFields');
+    const phoneInfo = document.getElementById('phoneInfo');
+
+    function toggleFields() {
+        if (paymentMethod.value === 'card') {
+            cardFields.style.display = 'block';
+            phoneInfo.style.display = 'none';
+        } else if (paymentMethod.value === 'phone') {
+            cardFields.style.display = 'none';
+            phoneInfo.style.display = 'block';
+        } else {
+            cardFields.style.display = 'none';
+            phoneInfo.style.display = 'none';
+        }
+    }
+
+    paymentMethod.addEventListener('change', toggleFields);
+    // Инициализация при загрузке
+    toggleFields();
+</script>
+{% endblock %}

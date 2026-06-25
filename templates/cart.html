@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Корзина</h1>
+{% if items %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Товар</th>
+                <th>Цена</th>
+                <th>Количество</th>
+                <th>Сумма</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for item in items %}
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <!-- Миниатюра товара -->
+                        <div style="width: 50px; margin-right: 10px;">
+                            {% if item.product.image_url %}
+                                {% if item.product.image_url.startswith('http') %}
+                                    <img src="{{ item.product.image_url }}" class="img-thumbnail" alt="{{ item.product.name }}">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename=item.product.image_url) }}" class="img-thumbnail" alt="{{ item.product.name }}">
+                                {% endif %}
+                            {% else %}
+                                <img src="https://via.placeholder.com/50" class="img-thumbnail" alt="Нет изображения">
+                            {% endif %}
+                        </div>
+                        <a href="{{ url_for('product_detail', product_id=item.product.id) }}">{{ item.product.name }}</a>
+                    </div>
+                </td>
+                <td>{{ item.product.price }} ₽</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.product.price * item.quantity }} ₽</td>
+                <td>
+                    <a href="{{ url_for('remove_from_cart', item_id=item.id) }}" class="btn btn-sm btn-danger">Удалить</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <form method="post" action="{{ url_for('checkout') }}">
+        <button type="submit" class="btn btn-success">Оформить заказ</button>
+    </form>
+{% else %}
+    <p>Корзина пуста.</p>
+{% endif %}
+{% endblock %}

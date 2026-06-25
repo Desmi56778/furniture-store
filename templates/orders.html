@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Мои заказы</h1>
+{% if orders %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Номер</th>
+                <th>Дата</th>
+                <th>Дата доставки</th>
+                <th>Статус</th>
+                <th>Оплачен</th>
+                <th>Рассрочка</th>
+                <th>Способ платежа</th>
+                <th>Сумма</th>
+                <th>Детали</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for order in orders %}
+            <tr>
+                <td>#{{ order.id }}</td>
+                <td>{{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                <td>{{ order.estimated_delivery.strftime('%d.%m.%Y') if order.estimated_delivery else '—' }}</td>
+                <td>{{ order.status }}</td>
+                <td>{% if order.is_paid %}Да{% else %}Нет{% endif %}</td>
+                <td>{% if order.installment %}Да{% else %}Нет{% endif %}</td>
+                <td>{{ order.payment_method }}</td>
+                <td>{{ order.total }} ₽</td>
+                <td><a href="{{ url_for('user_order_detail', order_id=order.id) }}" class="btn btn-sm btn-info">Подробнее</a></td>
+                <td>
+                    {% if not order.is_paid and order.status != 'отменен' %}
+                        <form method="post" action="{{ url_for('pay_order', order_id=order.id) }}" style="display:inline;" onsubmit="return confirm('Оплатить заказ с баланса?');">
+                            <button type="submit" class="btn btn-sm btn-success">Оплатить</button>
+                        </form>
+                    {% endif %}
+                    {% if order.status not in ['доставлен', 'отменен'] and order.status != 'Доставлен' %}
+                        <form method="post" action="{{ url_for('cancel_order', order_id=order.id) }}" style="display:inline;" onsubmit="return confirm('Отменить заказ?');">
+                            <button type="submit" class="btn btn-sm btn-warning">Отменить</button>
+                        </form>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>У вас пока нет заказов.</p>
+{% endif %}
+{% endblock %}

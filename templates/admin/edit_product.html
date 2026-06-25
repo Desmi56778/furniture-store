@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Редактирование товара #{{ product.id }}</h1>
+
+<form method="post" enctype="multipart/form-data" novalidate>
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+        {{ form.name.label(class="form-label") }}
+        {{ form.name(class="form-control") }}
+        {% for error in form.name.errors %}
+            <div class="text-danger small">{{ error }}</div>
+        {% endfor %}
+    </div>
+
+    <div class="mb-3">
+        {{ form.description.label(class="form-label") }}
+        {{ form.description(class="form-control", rows="3") }}
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            {{ form.price.label(class="form-label") }}
+            {{ form.price(class="form-control") }}
+            {% for error in form.price.errors %}
+                <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="col-md-4 mb-3">
+            {{ form.stock.label(class="form-label") }}
+            {{ form.stock(class="form-control") }}
+            {% for error in form.stock.errors %}
+                <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="col-md-4 mb-3">
+            {{ form.category.label(class="form-label") }}
+            {{ form.category(class="form-select") }}
+            {% for error in form.category.errors %}
+                <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="mb-3">
+        {{ form.image.label(class="form-label") }}
+        {{ form.image(class="form-control") }}
+        <div class="form-text">
+            Текущее изображение: 
+            {% if product.image_url %}
+                {% if product.image_url.startswith('http') %}
+                    <a href="{{ product.image_url }}" target="_blank">{{ product.image_url }}</a>
+                {% else %}
+                    <img src="{{ url_for('static', filename=product.image_url) }}" style="max-height:100px; margin-top:5px;" alt="Текущее">
+                {% endif %}
+            {% else %}
+                <span class="text-muted">не задано</span>
+            {% endif %}
+            <br>Чтобы заменить изображение, выберите новый файл. Если оставить пустым, изображение не изменится.
+        </div>
+        {% for error in form.image.errors %}
+            <div class="text-danger small">{{ error }}</div>
+        {% endfor %}
+    </div>
+
+    <div class="d-grid gap-2 d-md-block">
+        {{ form.submit(class="btn btn-primary") }}
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Отмена</a>
+    </div>
+</form>
+{% endblock %}

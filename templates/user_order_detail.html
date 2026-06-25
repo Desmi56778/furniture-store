@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Заказ #{{ order.id }}</h1>
+<p><strong>Дата:</strong> {{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+<p><strong>Ожидаемая дата доставки:</strong> {{ order.estimated_delivery.strftime('%d.%m.%Y') if order.estimated_delivery else 'Не указана' }}</p>
+<p><strong>Статус:</strong> {{ order.status }}</p>
+{% if order.status_comment %}
+    <p><strong>Комментарий к статусу:</strong> {{ order.status_comment }}</p>
+{% endif %}
+<p><strong>Оплачен:</strong> {{ 'Да' if order.is_paid else 'Нет' }}</p>
+<p><strong>Рассрочка:</strong> {{ 'Да' if order.installment else 'Нет' }}</p>
+<p><strong>Телефон:</strong> {{ order.phone }}</p>
+<p><strong>Адрес доставки:</strong> {{ order.shipping_address }}</p>
+<p><strong>Способ оплаты:</strong> {{ order.payment_method }}</p>
+<p><strong>Общая сумма:</strong> {{ order.total }} ₽</p>
+
+<h4>Товары в заказе</h4>
+... (таблица товаров как раньше)
+
+<div class="mt-3">
+    <a href="{{ url_for('orders') }}" class="btn btn-secondary">Назад к моим заказам</a>
+    {% if not order.is_paid and order.status != 'отменен' %}
+        <form method="post" action="{{ url_for('pay_order', order_id=order.id) }}" style="display:inline;" onsubmit="return confirm('Оплатить заказ с баланса?');">
+            <button type="submit" class="btn btn-success">Оплатить</button>
+        </form>
+    {% endif %}
+    {% if order.status not in ['доставлен', 'отменен'] and order.status != 'Доставлен' %}
+        <form method="post" action="{{ url_for('cancel_order', order_id=order.id) }}" style="display:inline;" onsubmit="return confirm('Отменить заказ?');">
+            <button type="submit" class="btn btn-warning">Отменить заказ</button>
+        </form>
+    {% endif %}
+</div>
+{% endblock %}

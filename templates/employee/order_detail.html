@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Заказ #{{ order.id }}</h1>
+<p><strong>Дата:</strong> {{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+<p><strong>Ожидаемая дата доставки:</strong> {{ order.estimated_delivery.strftime('%d.%m.%Y') if order.estimated_delivery else 'Не указана' }}</p>
+<p><strong>Текущий статус:</strong> {{ order.status }}</p>
+{% if order.status_comment %}
+    <p><strong>Комментарий:</strong> {{ order.status_comment }}</p>
+{% endif %}
+<p><strong>Оплачен:</strong> {{ 'Да' if order.is_paid else 'Нет' }}</p>
+<p><strong>Рассрочка:</strong> {{ 'Да' if order.installment else 'Нет' }}</p>
+<p><strong>Покупатель:</strong> {{ order.user.name }} (ID: {{ order.user_id }})</p>
+<p><strong>Телефон:</strong> {{ order.phone }}</p>
+<p><strong>Адрес доставки:</strong> {{ order.shipping_address }}</p>
+<p><strong>Способ оплаты:</strong> {{ order.payment_method }}</p>
+<p><strong>Общая сумма:</strong> {{ order.total }} ₽</p>
+
+<h4>Товары в заказе</h4>
+<table class="table table-sm">
+    ... (таблица товаров)
+</table>
+
+<!-- Форма обновления статуса (для сотрудника и администратора) -->
+{% if current_user.role in ('employee', 'admin') %}
+<hr>
+<h5>Обновить статус заказа</h5>
+<form method="post" action="{{ url_for('update_order_status', order_id=order.id) }}">
+    <div class="mb-3">
+        <label for="statusSelect" class="form-label">Статус</label>
+        <select name="status" id="statusSelect" class="form-select">
+            <option value="В обработке" {% if order.status == 'В обработке' %}selected{% endif %}>В обработке</option>
+            <option value="На складе" {% if order.status == 'На складе' %}selected{% endif %}>На складе</option>
+            <option value="В пути" {% if order.status == 'В пути' %}selected{% endif %}>В пути</option>
+            <option value="Задерживается" {% if order.status == 'Задерживается' %}selected{% endif %}>Задерживается</option>
+            <option value="Доставлен" {% if order.status == 'Доставлен' %}selected{% endif %}>Доставлен</option>
+            <option value="Отменен" {% if order.status == 'Отменен' %}selected{% endif %}>Отменен</option>
+            <option value="__custom__">Другое (ввести вручную)</option>
+        </select>
+        <input type="text" name="status" id="customStatus" class="form-control mt-2" style="display: none;" placeholder="Введите статус" value="{{ order.status if order.status not in ['В обработке','На складе','В пути','Задерживается','Доставлен','Отменен'] else '' }}">
+    </div>
+    <div class="mb-3">
+        <label for="statusComment" class="form-label">Комментарий к статусу (необязательно)</label>
+        <input type="text" name="status_comment" id="statusComment" class="form-control" value="{{ order.status_comment or '' }}">
+    </div>
+    <button type="submit" class="btn btn-primary">Обновить статус</button>
+</form>
+
+<script>
+    const select = document.getElementById('statusSelect');
+    const customInput = document.getElementById('customStatus');
+    function toggleCustom() {
+        if (select.value === '__custom__') {
+            customInput.style.display = 'block';
+            customInput.name = 'status';  // основной статус пойдёт из этого поля
+            select.name = 'status_select'; // чтобы не отправлять select
+        } else {
+            customInput.style.display = 'none';
+            customInput.name = 'custom_status';
+            select.name = 'status';
+        }
+    }
+    select.addEventListener('change', toggleCustom);
+    toggleCustom(); // при загрузке
+</script>
+{% endif %}
+
+<div class="mt-3">
+    <a href="{{ url_for('employee_dashboard') }}" class="btn btn-secondary">Назад</a>
+    {% if current_user.role == 'admin' and order.status not in ['Доставлен', 'Отменен'] %}
+        <form method="post" action="{{ url_for('cancel_order', order_id=order.id) }}" style="display:inline;" onsubmit="return confirm('Отменить заказ?');">
+            <button type="submit" class="btn btn-warning">Отменить заказ</button>
+        </form>
+    {% endif %}
+</div>
+{% endblock %}

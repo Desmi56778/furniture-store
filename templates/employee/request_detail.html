@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Запрос #{{ req.id }}</h1>
+<p><strong>Тема:</strong> {{ req.subject }}</p>
+<p><strong>Отправлен:</strong> {{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+<p><strong>Статус:</strong> {{ req.status }}</p>
+<p><strong>Сообщение:</strong></p>
+<div class="border p-3 mb-3">{{ req.body }}</div>
+
+{% if req.photos %}
+    <h5>Прикреплённые фото:</h5>
+    <div class="row">
+        {% for photo in req.photos %}
+            <div class="col-md-4 mb-3">
+                <img src="{{ url_for('static', filename=photo.filename) }}" class="img-fluid rounded" alt="Фото">
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% if req.admin_response %}
+    <h5>Ответ администратора:</h5>
+    <div class="alert alert-info">{{ req.admin_response }}</div>
+{% endif %}
+
+<div class="mt-3">
+    <a href="{{ url_for('employee_requests') }}" class="btn btn-secondary">Назад к списку</a>
+    <form method="post" action="{{ url_for('delete_request', request_id=req.id) }}" style="display:inline;" onsubmit="return confirm('Удалить запрос?');">
+        <button type="submit" class="btn btn-danger">Удалить запрос</button>
+    </form>
+</div>
+{% endblock %}

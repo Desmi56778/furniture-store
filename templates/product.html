@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <!-- Изображение товара -->
+        {% if product.image_url %}
+            {% if product.image_url.startswith('http') %}
+                <img src="{{ product.image_url }}" class="img-fluid rounded" alt="{{ product.name }}">
+            {% else %}
+                <img src="{{ url_for('static', filename=product.image_url) }}" class="img-fluid rounded" alt="{{ product.name }}">
+            {% endif %}
+        {% else %}
+            <img src="https://via.placeholder.com/600" class="img-fluid rounded" alt="Нет изображения">
+        {% endif %}
+    </div>
+    <div class="col-md-6">
+        <h1>{{ product.name }}</h1>
+        <p class="text-muted">Категория: {{ product.category.name }}</p>
+        <p class="fs-3 fw-bold text-primary">{{ product.price }} ₽</p>
+        <p><strong>В наличии:</strong> {{ product.stock }} шт.</p>
+        <p>{{ product.description }}</p>
+
+        {% if current_user.is_authenticated %}
+            <div class="d-grid gap-2 d-md-block">
+                <a href="{{ url_for('add_to_cart', product_id=product.id) }}" class="btn btn-success btn-lg">
+                    <i class="bi bi-cart-plus"></i> В корзину
+                </a>
+                <a href="{{ url_for('add_to_wishlist', product_id=product.id) }}" class="btn btn-outline-danger btn-lg">
+                    <i class="bi bi-heart"></i> В избранное
+                </a>
+            </div>
+        {% else %}
+            <div class="alert alert-warning">
+                Чтобы сделать заказ, <a href="{{ url_for('login') }}">войдите</a> или
+                <a href="{{ url_for('register') }}">зарегистрируйтесь</a>.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Похожие товары -->
+{% if related_products %}
+    <hr class="my-5">
+    <h3>Похожие товары</h3>
+    <div class="row">
+        {% for rel in related_products %}
+            <div class="col-md-3 mb-3">
+                <div class="card h-100">
+                    <!-- Изображение похожего товара -->
+                    {% if rel.image_url %}
+                        {% if rel.image_url.startswith('http') %}
+                            <img src="{{ rel.image_url }}" class="card-img-top" alt="{{ rel.name }}">
+                        {% else %}
+                            <img src="{{ url_for('static', filename=rel.image_url) }}" class="card-img-top" alt="{{ rel.name }}">
+                        {% endif %}
+                    {% else %}
+                        <img src="https://via.placeholder.com/300" class="card-img-top" alt="Нет изображения">
+                    {% endif %}
+                    <div class="card-body">
+                        <h6>{{ rel.name }}</h6>
+                        <p class="fw-bold">{{ rel.price }} ₽</p>
+                        <a href="{{ url_for('product_detail', product_id=rel.id) }}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}

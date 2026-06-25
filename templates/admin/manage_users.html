@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Управление пользователями</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Имя</th>
+            <th>Email</th>
+            <th>Роль</th>
+            <th>Действие</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for emp in employees %}
+        <tr>
+            <td>{{ emp.id }}</td>
+            <td>{{ emp.name }}</td>
+            <td>{{ emp.email }}</td>
+            <td>{{ emp.role }}</td>
+            <td>
+                {% if emp.role == 'user' %}
+                    <a href="{{ url_for('promote_user', user_id=emp.id) }}" class="btn btn-sm btn-warning">Повысить до сотрудника</a>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

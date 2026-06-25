@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Административная панель</h1>
+
+<div class="row mt-4">
+    <!-- Блок сотрудников -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Сотрудники</h5>
+                <a href="{{ url_for('manage_users') }}" class="btn btn-sm btn-outline-primary">Управление</a>
+            </div>
+            <div class="card-body">
+                {% if employees %}
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Имя</th>
+                            <th>Email</th>
+                            <th>Роль</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for emp in employees %}
+                        <tr>
+                            <td>{{ emp.id }}</td>
+                            <td>{{ emp.name }}</td>
+                            <td>{{ emp.email }}</td>
+                            <td>{{ emp.role }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                    <p class="text-muted">Нет сотрудников.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Блок запросов от сотрудников -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Запросы от сотрудников</h5>
+                <a href="{{ url_for('admin_requests') }}" class="btn btn-sm btn-outline-primary">Все запросы</a>
+            </div>
+            <div class="card-body">
+                <p>Перейдите в раздел для обработки запросов.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Все пользователи (с балансом и пополнением) -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Все пользователи</h5>
+            </div>
+            <div class="card-body">
+                {% if all_users %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Имя</th>
+                                <th>Email</th>
+                                <th>Роль</th>
+                                <th>Баланс</th>
+                                <th>Пополнить</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for u in all_users %}
+                            <tr>
+                                <td>{{ u.id }}</td>
+                                <td>{{ u.name }}</td>
+                                <td>{{ u.email }}</td>
+                                <td>{{ u.role }}</td>
+                                <td>{{ "%.2f"|format(u.balance) }} ₽</td>
+                                <td>
+                                    <form method="post" action="{{ url_for('add_balance', user_id=u.id) }}" class="d-flex">
+                                        <input type="number" step="0.01" min="0.01" name="amount" class="form-control form-control-sm me-2" style="width: 100px;" placeholder="Сумма" required>
+                                        <button type="submit" class="btn btn-sm btn-success">Пополнить</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                    <p class="text-muted">Пользователей нет.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Товары -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Товары</h5>
+                <a href="{{ url_for('add_product') }}" class="btn btn-sm btn-success">+ Добавить товар</a>
+            </div>
+            <div class="card-body">
+                {% if products %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Изображение</th>
+                                <th>Название</th>
+                                <th>Категория</th>
+                                <th>Цена</th>
+                                <th>Остаток</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for p in products %}
+                            <tr>
+                                <td>{{ p.id }}</td>
+                                <td>
+                                    {% if p.image_url %}
+                                        {% if p.image_url.startswith('http') %}
+                                            <img src="{{ p.image_url }}" style="max-height:40px;" alt="{{ p.name }}">
+                                        {% else %}
+                                            <img src="{{ url_for('static', filename=p.image_url) }}" style="max-height:40px;" alt="{{ p.name }}">
+                                        {% endif %}
+                                    {% else %}
+                                        <img src="https://via.placeholder.com/40" style="max-height:40px;" alt="Нет">
+                                    {% endif %}
+                                </td>
+                                <td><a href="{{ url_for('product_detail', product_id=p.id) }}">{{ p.name }}</a></td>
+                                <td>{{ p.category.name }}</td>
+                                <td>{{ p.price }} ₽</td>
+                                <td>{{ p.stock }}</td>
+                                <td>
+                                    <a href="{{ url_for('edit_product', product_id=p.id) }}" class="btn btn-sm btn-warning">Редактировать</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                    <p class="text-muted">Товаров пока нет. <a href="{{ url_for('add_product') }}">Добавьте первый товар</a>.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

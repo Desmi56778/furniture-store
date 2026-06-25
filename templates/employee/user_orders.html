@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Заказы пользователя: {{ user.name }} (ID: {{ user.id }})</h1>
+<p>Email: {{ user.email }}</p>
+{% if orders %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID заказа</th>
+                <th>Дата</th>
+                <th>Статус</th>
+                <th>Оплачен</th>
+                <th>Рассрочка</th>
+                <th>Сумма</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for o in orders %}
+            <tr>
+                <td>{{ o.id }}</td>
+                <td>{{ o.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                <td>{{ o.status }}</td>
+                <td>{{ 'Да' if o.is_paid else 'Нет' }}</td>
+                <td>{{ 'Да' if o.installment else 'Нет' }}</td>
+                <td>{{ o.total }} ₽</td>
+                <td><a href="{{ url_for('employee_order_detail', order_id=o.id) }}" class="btn btn-sm btn-info">Детали</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>У пользователя нет заказов.</p>
+{% endif %}
+<a href="{{ url_for('employee_dashboard') }}" class="btn btn-secondary">Назад</a>
+{% endblock %}

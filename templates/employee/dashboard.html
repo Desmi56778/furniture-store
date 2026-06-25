@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Панель сотрудника</h1>
+
+<div class="mb-4">
+    <a href="{{ url_for('new_request') }}" class="btn btn-primary">Создать запрос администратору</a>
+    <a href="{{ url_for('employee_requests') }}" class="btn btn-outline-primary">Мои запросы</a>
+</div>
+
+<div class="accordion" id="dashboardAccordion">
+
+    <!-- 1. Обычные пользователи -->
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="headingUsers">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUsers" aria-expanded="true" aria-controls="collapseUsers">
+                Обычные пользователи
+            </button>
+        </h2>
+        <div id="collapseUsers" class="accordion-collapse collapse show" aria-labelledby="headingUsers" data-bs-parent="#dashboardAccordion">
+            <div class="accordion-body">
+                <!-- Поиск пользователя по ID -->
+                <form method="get" class="row g-2 mb-3">
+                    <div class="col-auto">
+                        <input type="number" name="user_id" class="form-control" placeholder="ID пользователя" value="{{ search_user_id or '' }}">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-outline-primary">Найти</button>
+                    </div>
+                    {% if search_user_id %}
+                        <div class="col-auto">
+                            <a href="{{ url_for('employee_dashboard') }}" class="btn btn-outline-secondary">Сбросить</a>
+                        </div>
+                    {% endif %}
+                </form>
+
+                {% if users %}
+                <table class="table table-sm">
+                    <thead>
+                        <tr><th>ID</th><th>Имя</th><th>Email</th><th>Заказы</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for u in users %}
+                        <tr>
+                            <td>{{ u.id }}</td>
+                            <td>{{ u.name }}</td>
+                            <td>{{ u.email }}</td>
+                            <td>
+                                <a href="{{ url_for('employee_user_orders', user_id=u.id) }}" class="btn btn-sm btn-outline-primary">Смотреть</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                    <p>Пользователи не найдены.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Все заказы -->
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="headingOrders">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOrders" aria-expanded="false" aria-controls="collapseOrders">
+                Все заказы
+            </button>
+        </h2>
+        <div id="collapseOrders" class="accordion-collapse collapse" aria-labelledby="headingOrders" data-bs-parent="#dashboardAccordion">
+            <div class="accordion-body">
+                <!-- Форма поиска по ID заказа -->
+                <form method="get" class="row g-3 mb-3">
+                    <div class="col-auto">
+                        <input type="number" name="order_id" class="form-control" placeholder="Поиск по ID заказа" value="{{ search_order_id or '' }}">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-outline-primary">Найти</button>
+                    </div>
+                    {% if search_order_id %}
+                        <div class="col-auto">
+                            <a href="{{ url_for('employee_dashboard') }}" class="btn btn-outline-secondary">Сбросить</a>
+                        </div>
+                    {% endif %}
+                </form>
+
+                {% if orders %}
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Пользователь</th>
+                            <th>Дата</th>
+                            <th>Дата доставки</th>
+                            <th>Статус</th>
+                            <th>Оплачен</th>
+                            <th>Рассрочка</th>
+                            <th>Сумма</th>
+                            <th>Детали</th>
+                            {% if current_user.role == 'admin' %}
+                                <th></th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for o in orders %}
+                        <tr>
+                            <td>{{ o.id }}</td>
+                            <td>{{ o.user_id }} ({{ o.user.name if o.user }})</td>
+                            <td>{{ o.created_at.strftime('%d.%m.%Y') }}</td>
+                            <td>{{ o.estimated_delivery.strftime('%d.%m.%Y') if o.estimated_delivery else '—' }}</td>
+                            <td>{{ o.status }}</td>
+                            <td>{{ 'Да' if o.is_paid else 'Нет' }}</td>
+                            <td>{{ 'Да' if o.installment else 'Нет' }}</td>
+                            <td>{{ o.total }} ₽</td>
+                            <td><a href="{{ url_for('employee_order_detail', order_id=o.id) }}" class="btn btn-sm btn-info">Детали</a></td>
+                            {% if current_user.role == 'admin' %}
+                                <td>
+                                    {% if o.status not in ['Доставлен', 'Отменен'] %}
+                                        <form method="post" action="{{ url_for('cancel_order', order_id=o.id) }}" onsubmit="return confirm('Отменить заказ?');">
+                                            <button type="submit" class="btn btn-sm btn-warning">Отменить</button>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                    <p>Заказов не найдено.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Товары на складе -->
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="headingStock">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStock" aria-expanded="false" aria-controls="collapseStock">
+                Товары на складе
+            </button>
+        </h2>
+        <div id="collapseStock" class="accordion-collapse collapse" aria-labelledby="headingStock" data-bs-parent="#dashboardAccordion">
+            <div class="accordion-body">
+                <!-- Поиск товаров -->
+                <form method="get" class="row g-2 mb-3">
+                    <div class="col-auto">
+                        <input type="text" name="product_search" class="form-control" placeholder="Название или ID товара" value="{{ search_product or '' }}">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-outline-primary">Найти</button>
+                    </div>
+                    {% if search_product %}
+                        <div class="col-auto">
+                            <a href="{{ url_for('employee_dashboard') }}" class="btn btn-outline-secondary">Сбросить</a>
+                        </div>
+                    {% endif %}
+                </form>
+
+                {% if products %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Изображение</th>
+                                <th>Название</th>
+                                <th>Категория</th>
+                                <th>Остаток</th>
+                                <th>Цена</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for p in products %}
+                            <tr>
+                                <td>{{ p.id }}</td>
+                                <td>
+                                    {% if p.image_url %}
+                                        {% if p.image_url.startswith('http') %}
+                                            <img src="{{ p.image_url }}" style="max-height:40px;" alt="{{ p.name }}">
+                                        {% else %}
+                                            <img src="{{ url_for('static', filename=p.image_url) }}" style="max-height:40px;" alt="{{ p.name }}">
+                                        {% endif %}
+                                    {% else %}
+                                        <img src="https://via.placeholder.com/40" style="max-height:40px;" alt="Нет">
+                                    {% endif %}
+                                </td>
+                                <td><a href="{{ url_for('product_detail', product_id=p.id) }}">{{ p.name }}</a></td>
+                                <td>{{ p.category.name }}</td>
+                                <td>{{ p.stock }}</td>
+                                <td>{{ p.price }} ₽</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                    <p>Товары не найдены.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Запросы от сотрудников</h1>
+
+<!-- Форма фильтрации -->
+<form method="get" class="row g-2 mb-4">
+    <div class="col-md-2">
+        <input type="number" name="request_id" class="form-control" placeholder="ID запроса" value="{{ search_id or '' }}">
+    </div>
+    <div class="col-md-2">
+        <input type="text" name="employee" class="form-control" placeholder="Сотрудник (ID/имя)" value="{{ search_employee or '' }}">
+    </div>
+    <div class="col-md-2">
+        <input type="text" name="subject" class="form-control" placeholder="Тема" value="{{ search_subject or '' }}">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small text-muted">Дата с</label>
+        <input type="date" name="date_from" class="form-control" value="{{ date_from or '' }}">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small text-muted">Дата по</label>
+        <input type="date" name="date_to" class="form-control" value="{{ date_to or '' }}">
+    </div>
+    <div class="col-md-2">
+        <select name="status" class="form-select">
+            <option value="">Все статусы</option>
+            <option value="новый" {% if status == 'новый' %}selected{% endif %}>Новый</option>
+            <option value="в обработке" {% if status == 'в обработке' %}selected{% endif %}>В обработке</option>
+            <option value="закрыт" {% if status == 'закрыт' %}selected{% endif %}>Закрыт</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <input type="number" step="0.01" name="amount_min" class="form-control" placeholder="Сумма от" value="{{ amount_min or '' }}">
+    </div>
+    <div class="col-md-2">
+        <input type="number" step="0.01" name="amount_max" class="form-control" placeholder="Сумма до" value="{{ amount_max or '' }}">
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary w-100">Фильтр</button>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <a href="{{ url_for('admin_requests') }}" class="btn btn-outline-secondary w-100">Сбросить</a>
+    </div>
+</form>
+
+{% if requests %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Сотрудник</th>
+                <th>Тема</th>
+                <th>Дата</th>
+                <th>Статус</th>
+                <th>Сумма</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for r in requests %}
+            <tr>
+                <td>#{{ r.id }}</td>
+                <td>{{ r.employee.name }} (ID: {{ r.employee_id }})</td>
+                <td>{{ r.subject }}</td>
+                <td>{{ r.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                <td>{{ r.status }}</td>
+                <td>{{ r.amount if r.amount else '' }}</td>
+                <td>
+                    <a href="{{ url_for('admin_request_detail', request_id=r.id) }}" class="btn btn-sm btn-info">Обработать</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Запросов не найдено.</p>
+{% endif %}
+{% endblock %}

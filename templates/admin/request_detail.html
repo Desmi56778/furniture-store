@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Запрос #{{ req.id }}</h1>
+<p><strong>От:</strong> {{ req.employee.name }} (ID: {{ req.employee_id }}, Email: {{ req.employee.email }})</p>
+<p><strong>Тема:</strong> {{ req.subject }}</p>
+<p><strong>Дата:</strong> {{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+<p><strong>Текущий статус:</strong> {{ req.status }}</p>
+
+{% if req.amount %}
+    <p><strong>Сумма пополнения:</strong> {{ req.amount }} ₽</p>
+    <p><strong>Способ оплаты:</strong> 
+        {% if req.payment_method == 'card' %} Банковская карта
+        {% elif req.payment_method == 'phone' %} Перевод по телефону
+        {% else %} {{ req.payment_method }}
+        {% endif %}
+    </p>
+{% endif %}
+
+<hr>
+<h4>Текст запроса</h4>
+<p>{{ req.body }}</p>
+
+{% if req.photos %}
+    <h5>Фотографии ({{ req.photos|length }} шт.)</h5>
+    <div class="row">
+        {% for photo in req.photos %}
+            <div class="col-md-3 mb-3">
+                <a href="{{ url_for('static', filename=photo.filename) }}" target="_blank">
+                    <img src="{{ url_for('static', filename=photo.filename) }}" class="img-thumbnail" alt="Фото">
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<hr>
+<h4>Ответ администратора</h4>
+{% if req.admin_response %}
+    <div class="alert alert-info">{{ req.admin_response }}</div>
+{% else %}
+    <p>Ответа пока нет.</p>
+{% endif %}
+
+<h5>Действия</h5>
+<form method="post" class="mb-3">
+    <div class="mb-3">
+        <label for="admin_response" class="form-label">Ваш ответ</label>
+        <textarea name="admin_response" id="admin_response" class="form-control" rows="4">{{ req.admin_response or '' }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label for="status" class="form-label">Статус</label>
+        <select name="status" id="status" class="form-select">
+            <option value="новый" {% if req.status == 'новый' %}selected{% endif %}>Новый</option>
+            <option value="в обработке" {% if req.status == 'в обработке' %}selected{% endif %}>В обработке</option>
+            <option value="закрыт" {% if req.status == 'закрыт' %}selected{% endif %}>Закрыт</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Сохранить ответ</button>
+</form>
+
+{% if req.amount and req.status != 'закрыт' %}
+    <form method="post" action="{{ url_for('approve_replenish', request_id=req.id) }}" class="d-inline">
+        <button type="submit" class="btn btn-success">Подтвердить пополнение ({{ req.amount }} ₽)</button>
+    </form>
+{% endif %}
+
+<a href="{{ url_for('admin_requests') }}" class="btn btn-secondary mt-3">Назад к списку</a>
+{% endblock %}
