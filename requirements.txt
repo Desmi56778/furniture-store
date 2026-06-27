@@ -2,5 +2,5 @@ Flask
 Flask-SQLAlchemy
 Flask-WTF
 Flask-Login
-pymysql
+pyinstaller
 gunicorn
